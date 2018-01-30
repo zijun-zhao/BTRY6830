@@ -1,0 +1,534 @@
+---
+author: "Zijun Zhao"
+output: html_document
+---
+
+Quantitative Genomics and Genetics, Spring 2018
+
+Computer Lab 1
+------
+-- 1 February 2018
+
+-- Author: Zijun Zhao (ziz2003@med.cornell.edu)
+
+
+**Announcements**
+CMS has not been set up yet for students at the NYC campus.     
+Everyone should have access to Piazza. (Put a * next to your name is you do not have access)   
+
+     
+
+**Best way to download computer lab material**
+
+- Mac and Linux users 
+
+Open a terminal, change directories to your preferred location, and type the following command.
+
+```{r, eval = FALSE}
+git clone https://github.com/jinhyunju/QG16_computerlab.git
+```
+
+After the initial "cloning" of the repository, you can use this command (while you are in the directory) to download any future updates.
+
+```{r, eval = FALSE}
+git pull
+```
+
+- Windows users 
+
+Download git
+
+https://git-scm.com/downloads
+
+Use either the git bash functionality and type the same command shown above, or use the GUI version and copy and paste the URL to clone the repository.
+
+**Installing R**
+
+The Comprehensive R Archive Network (CRAN)
+
+http://cran.r-project.org/
+
+Download the R distribution for your operating system (Mac, Windows, Linux) and follow the installation instruction.
+
+**Installing R studio**
+
+http://www.rstudio.com/
+
+**What is R?**
+
+- R is a programming language: A set of commands in a syntax that can be interpreted by a computer to make use of the processors to do computations. A way to tell the computer what to do.
+
+- R is a "scripting" type language: The syntax is interpreted directly to do computations and much of the complex tasks one would like to accomplish are implemented automatically.
+
+- R is specifically developed for doing statistical tasks and computations.
+
+**What is R studio?**
+
+User friendly interface for R. Makes your life a lot easier. 
+
+Key features:
+
+- Syntax highlighting
+
+- Code completion
+
+- Smart indentation
+
+- Tools to manage plots
+
+- Browse files and directories
+
+- Visualizing object structures
+
+- When you run Rstudio it automatically opens an R session
+
+- Now even including git functionality
+
+**Why R?**
+
+- It's free. (1 year SPSS licences range from $100 (student pricing) to $14,000+)
+
+- R is supported by a large community (constantly getting updated, help communities, new features)
+
+- R is user friendly and easy to learn and provides a foundation for learning more complex languages
+
+- R is particularly good for accomplishing statistical applications 
+
+- R has nice graphical outputs (ggplot)
+
+- R is particularly useful in bioinformatics (the bioconductor community has many packages available for commonly used analyses)
+
+**Why are we interested in using R?**
+
+- We can analyze large datasets in a reproducible way. (You will never, or hardly ever, use excel again)
+
+- We can implement algorithms or statistical analyses that are not available as published functions
+
+- We can automate a complex analysis by putting together multiple steps 
+
+- We can simulate data
+
+**A few remarks on programming**
+
+- It is easier than you think once you get used to it.
+
+- It is about winning small battles. **Do not attempt to write up the entire process at once**.
+
+- When in doubt, **HIT TAB**.
+
+- Typos are your worst enemy and you will see many in the lecture notes as well...
+
+- Computers are super fast stubborn idiots.
+
+- Your program or script will almost certainly never work on the first run. If it does work, it is probably not doing the right thing.
+
+
+### 1. Location, Location, Location ...
+
+---------------
+
+#### The working directory
+
+- The "working directory" is where R automatically looks for your data files and saves any outputs.
+
+- You can use R interactively by writing commands directly to the "prompt", which looks like this ">". 
+
+- You can also use the script window to directly run commands. (we will get there soon)
+
+- Let's check the directory that you are in first
+
+```{r, comment=NA, eval = FALSE}
+getwd()
+```
+
+- Now lets set your working directory to another place
+
+- If you don't know what to type as your directory, **try hitting the tab button inside the quote marks**. 
+  setwd("-hit tab-")
+
+```{r, comment=NA, eval = FALSE}
+setwd("Path_to_directory")
+```
+
+- This command changed our working directory and we can check it by using getwd() again
+
+```{r, comment=NA, eval = FALSE}
+getwd()
+```
+
+- To see what is in the working directory 
+
+```{r, comment=NA}
+dir() 
+list.files()  # does the same thing
+```
+
+- Now that we know where we are let's see what R can really do.
+
+### 2. R as a calculator
+
+---------------
+
+```{r, comment=NA}
+101+127
+```
+
+```{r, comment=NA}
+2 * 4
+```
+
+```{r, comment=NA}
+6 / 3
+```
+
+- And in a more sophisticated manner
+
+```{r, comment=NA}
+( (6 / 3) + ( 9 / (1+2) ) - 2.3 )^2
+```
+
+#### - Built in math functions
+
+*Side note: Everything that is written after a # is considered as a comment and will not be executed.*
+
+```{r, comment=NA}
+log(10)     # log with base e
+log2(8)     # log with base 2
+log10(1000) # log with base 10
+exp(4)      # exponentials
+sqrt(36)    # square roots
+abs( 10 - 15 ) # absolute values
+```
+
+- In case you cannot remember what a function does, try typing the name of the function with a ? in front of it.
+
+```{r, commnet=NA}
+?log
+?log10
+```
+
+### 3. Data structures in R
+
+---------------
+
+#### 1. Vectors
+
+- R can store values in variables that can be declared and used as follows:
+
+```{r, comment=NA}
+number.of.students <- 50
+male.ratio <- 0.4
+
+number.of.males <- number.of.students * male.ratio
+number.of.females <- number.of.students * (1 - male.ratio)
+```
+
+- Let's check the results saved in the variables
+
+```{r, comment=NA}
+number.of.males
+number.of.females
+```
+
+- It is very important to use variable names that make sense to you. DO NOT CHOOSE VARIABLE NAMES BASED ON HOW LONG IT TAKES TO TYPE THEM. For example, do not use variable names like a, asdf, nm,nf,var1, etc... You will see that you are spending much more time interpreting your own code after you haven't looked at it for a while. 
+
+- Variable names are case sensitive. number.of.males and Number.of.males are two different variables.
+
+- Word separation is usually done with periods. (you can also use _)
+
+- By default R is saving variables in the form of vectors, which are sequences of numbers.
+
+- There are many many many ways to create a vector from scratch. Here are a few examples 
+
+```{r, comment=NA}
+example.vector <- c(1.1,3,5.3,7,9.0)
+example.vector
+
+example.vector2 <- 1:10
+example.vector2
+
+example.vector3 <- seq(from=1, to = 12, by = 3)
+example.vector3
+```
+
+- You can access individual values of a vector by using square brackets [ ].
+
+```{r, comment=NA}
+example.vector[3]
+
+# access multiple values
+example.vector2[c(1,2)]
+
+# access every value except position 2
+example.vector2[-2]
+```
+
+- You can also use functions on vectors 
+
+```{r, comment=NA}
+# get the maximum value
+max(example.vector3)
+
+# get the minimum value
+min(example.vector3)
+
+# get the mean
+mean(example.vector3)
+```
+
+- Vectors can also save characters
+
+```{r, comment=NA}
+character.vector1 <- c("R", "is", "easy","free","great")
+character.vector1
+character.vector1[c(1,2,3)]
+character.vector1[c(1,2,5)]
+character.vector1[-c(3,5)]
+```
+
+- To check the type of information that a vector has saved you can use the class() function
+
+```{r, comment=NA}
+class(character.vector1)
+class(example.vector)
+class(example.vector2)
+```
+
+- Now, what class would this vector be?
+
+```{r, comment=NA, eval = FALSE}
+question1 <- "1"
+```
+
+- Anything written between "" will be considered as characters.
+
+
+
+#### 2. Matrices
+
+- With matrices we can start working in 2 dimensions.
+
+- We can create a matrix like this:
+
+```{r, comment=NA}
+example.matrix1 <- matrix(1:6, nrow = 2)
+example.matrix2 <- matrix(1:6, ncol = 2)
+example.matrix3 <- matrix(1:6, nrow = 2, ncol = 3)
+example.matrix4 <- matrix(1:6, nrow = 2, ncol = 3, byrow = TRUE)
+
+example.matrix1
+example.matrix2
+example.matrix3
+example.matrix4
+```
+
+- Checking the dimensions of a matrix
+```{r, comment=NA}
+dim(example.matrix4)
+# The results are row x columns
+```
+
+- You can access values the same way as vectors, but with an additional position
+
+- Entire columns and rows can be selected by leaving the other entry empty
+
+```{r, comment=NA}
+example.matrix4[1,2]
+example.matrix4[1:2,1]
+
+# selecting a row 
+example.matrix4[1,]
+# selecting a column
+example.matrix4[,2]
+```
+
+- Sometimes you will need to transpose a matrix 
+
+```{r, comment=NA}
+t(example.matrix4)
+```
+
+- Sometimes you will need to name the rows and columns of your matrix
+
+```{r, comment=NA}
+rownames(example.matrix4) <- c("row1","row2")
+colnames(example.matrix4) <- c("column1","column2","column3")
+example.matrix4
+```
+
+- Just like vectors matrices can also hold characters
+
+- **An important feature of vectors and matrices is that they can only hold one type of data. So a numerical matrix will only be allowed to hold numerical values, and a character matrix will only hold characters. When R complains that it cannot compute using a matrix, check the type!**
+
+```{r, comment=NA}
+character.matrix <- matrix(c("a","b","c","d","e","f"), nrow = 2, ncol = 3, byrow=TRUE)
+character.matrix
+
+mode(example.matrix4)
+mode(character.matrix)
+```
+
+- Can you tell me what the results for the following code will be?
+
+```{r, comment=NA, eval = FALSE}
+question2 <- matrix(c(1,2,3), nrow = 2, ncol = 3, byrow = TRUE)
+
+question3 <- matrix(c(1,2,3,4), nrow = 2, ncol = 3, byrow = TRUE)
+```
+
+- These examples show you how R recycles values if the dimensions differ. This feature comes in handy sometimes, but it mostly backfires since it happens automatically even in cases where we would rather see an error.
+
+- Now what will happen in this case?
+
+```{r, comment=NA, eval = FALSE}
+question4 <- matrix(c(1,2,Three), nrow = 2, ncol = 3, byrow = TRUE)
+
+question5 <- matrix(c(1,2,"Three"), nrow = 2, ncol = 3, byrow = TRUE)
+```
+
+#### 3. Dataframes
+
+- To deal with multiple types of data in a single object we use data frames. 
+
+```{r, comment=NA}
+
+numbers <- c(1:4)
+characters <- c("a","b","c","d")
+
+# The stringsAsFactors option prevents converting strings to factors
+example.data.frame <- data.frame(numbers,characters, stringsAsFactors = FALSE)
+example.data.frame
+
+class(example.data.frame[,1])
+class(example.data.frame[,2])
+
+```
+
+- You can also convert a matrix directly to a data.frame
+
+```{r, comment=NA}
+converted.data.frame <- as.data.frame(example.matrix4)
+converted.data.frame
+class(converted.data.frame)
+```
+
+- Data frames can be accessed just like matrices 
+
+- If you know the column names you can also use $ to access specific columns
+
+```{r, comment=NA}
+
+example.data.frame[1,1]
+example.data.frame[2,]
+example.data.frame$numbers
+
+```
+
+- How will this affect the column types in the data frame?
+
+```{r, comment = NA, eval = FALSE}
+example.data.frame[1,] <- c(5,5)
+
+example.data.frame[1,] <- c("e", "e")
+```
+
+#### 4. Lists
+
+- You probably wont need to use lists if you are not very familiar with R, but once you get used to using lists you can make your code even more efficient!
+
+- Lists are basically bundles of objects, holding vectors, matrices and data frames in a single object.
+
+```{r, comment=NA}
+example.list <- list() # declaring a list
+
+example.list$place1 <- example.vector3
+example.list$place2 <- example.matrix4
+example.list$place3 <- example.data.frame
+
+```
+
+- Now the list has a vector, a matrix and a data frame all stored in one object. To reveal the structure of a list we can use the str() function. 
+
+```{r, comment=NA}
+str(example.list)
+```
+
+- Each item can be accessed by using either a double square bracket [[]] or a dollar sign $ if you know the name of the entry. 
+
+```{r, comment=NA}
+example.list[[1]]
+example.list[[2]]
+example.list$place3
+```
+
+- If you want to access a specific value of a vector/matrix/data.frame within a list, you can do so by adding a single square bracket at the end.
+
+```{r, comment=NA}
+example.list[[1]][2]
+example.list[[2]][,1]
+example.list$place3[,1]
+```
+
+
+#### Quick Note
+
+- In case you cannot remember which variables you have declared, use the ls() function
+
+```{r, comment=NA}
+ls()
+```
+
+- To remove variables that are no longer used, use the rm() function
+
+```{r, comment =NA}
+rm(example.list)
+ls()
+```
+
+
+### 4. Importing and Exporting Data
+
+---------------
+
+- To actually analyze data you most certainly will have to import data from a file. 
+
+- The most frequently used functions for importing data are read.table() or read.csv()
+
+- You are probably used to excel spreadsheets with the extension .xlsx. However, tab-separated text files (.tsv or .txt) or comma-separated text files (.csv) are more commonly used with large datasets. Some of these will be automatically converted by excel if you open them using excel. 
+
+- Let's read in a comma separated example file.
+
+- First, open the file using your text editor (not excel!) and look what's inside.
+
+```{r, comment=NA}
+QG16.lab.1 <- read.table("./QG16-lab1-data.csv", sep = ",", header = TRUE)
+QG16.lab.2 <- read.csv("./QG16-lab1-data.csv", header = TRUE)
+
+```
+
+- The two functions here are essentially doing the samething. You can think of read.csv() as the specialized version of read.table() for csv format files. The default for read.table() is to read in tab-separated files, but it can read in csv files as well if you specify the separating character with sep = ",".
+
+- The first thing to do after reading in a data file is to check the dimensions and inspect the data.
+
+```{r, comment=NA}
+dim(QG16.lab.1)
+head(QG16.lab.1)     # displays the first 10 rows of the data
+tail(QG16.lab.1)
+rownames(QG16.lab.1)
+colnames(QG16.lab.1) # checking the column names of the data
+```
+
+- This data set has a column named factor1 which has two levels = "a" and "b". Let's say we are only interested in the entries that have an "a" for factor1. We can subset the data by using the subset() function.
+
+```{r, comment=NA}
+QG16.lab.1.only.a <- subset(QG16.lab.1, factor1 == "a")
+QG16.lab.1.only.a
+```
+
+- Let's save the subset into a csv file by using the function write.table().
+
+```{r, comment=NA}
+write.table(QG16.lab.1.only.a, file = "./QG16_subset_only_a.csv", sep = ",", quote= FALSE, row.names=FALSE)
+# the quote options remove the "" of the entries. try it with quote = TRUE and see how it is different.
+# row.names = FALSE eliminates the numbers in front of each row
+```
