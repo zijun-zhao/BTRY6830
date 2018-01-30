@@ -1,7 +1,7 @@
 Quantitative Genomics and Genetics, Spring 2018   
 ------------------------------------------
 
-### [Lab 1](https://github.com/zijun-zhao/BTRY6830/Lab1/lab1.html)
+### Lab 1 - [Notes](http://htmlpreview.github.io/?https://github.com/zijun-zhao/BTRY6830/blob/master/Lab1/lab1.html "Lab1") , [Data](http://htmlpreview.github.io/?https://github.com/zijun-zhao/BTRY6830/blob/master/Lab1/lab1_data.csv)
 * R basics
 * Data structure
 ---
