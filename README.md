@@ -1,7 +1,7 @@
 Quantitative Genomics and Genetics, Spring 2018   
 ------------------------------------------
 
-### Lab 1 - [Notes](Lab1/lab1.html) , [Data](Lab1/lab1_data.csv)
+### Lab 1 - [Notes](Lab1/lab1.rmd) , [Data](Lab1/lab1_data.csv)
 * R basics
 * Data structure
 ---
