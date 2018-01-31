@@ -25,7 +25,7 @@ Everyone should have access to Piazza. (Put a * next to your name is you do not 
 Open a terminal, change directories to your preferred location, and type the following command.
 
 ```{r, eval = FALSE}
-git clone https://github.com/jinhyunju/QG16_computerlab.git
+git clone https://github.com/zijun-zhao/BTRY6830.git
 ```
 
 After the initial "cloning" of the repository, you can use this command (while you are in the directory) to download any future updates.
