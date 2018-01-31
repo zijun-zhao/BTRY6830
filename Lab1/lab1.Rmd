@@ -12,7 +12,7 @@ Computer Lab 1
 -- Author: Zijun Zhao (ziz2003@med.cornell.edu)
 
 
-**Announcements**
+**Announcements**   
 CMS has not been set up yet for students at the NYC campus.     
 Everyone should have access to Piazza. (Put a * next to your name is you do not have access)   
 
