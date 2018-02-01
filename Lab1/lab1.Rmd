@@ -499,9 +499,8 @@ ls()
 - First, open the file using your text editor (not excel!) and look what's inside.
 
 ```{r, comment=NA}
-QG16.lab.1 <- read.table("./QG16-lab1-data.csv", sep = ",", header = TRUE)
-QG16.lab.2 <- read.csv("./QG16-lab1-data.csv", header = TRUE)
-
+lab.1 <- read.table("./lab1_data.csv", sep = ",", header = TRUE)
+lab.2 <- read.csv("./lab1_data.csv", header = TRUE)
 ```
 
 - The two functions here are essentially doing the samething. You can think of read.csv() as the specialized version of read.table() for csv format files. The default for read.table() is to read in tab-separated files, but it can read in csv files as well if you specify the separating character with sep = ",".
@@ -509,24 +508,24 @@ QG16.lab.2 <- read.csv("./QG16-lab1-data.csv", header = TRUE)
 - The first thing to do after reading in a data file is to check the dimensions and inspect the data.
 
 ```{r, comment=NA}
-dim(QG16.lab.1)
-head(QG16.lab.1)     # displays the first 10 rows of the data
-tail(QG16.lab.1)
-rownames(QG16.lab.1)
-colnames(QG16.lab.1) # checking the column names of the data
+dim(lab.1)
+head(lab.1)     # displays the first 10 rows of the data
+tail(lab.1)
+rownames(lab.1)
+colnames(lab.1) # checking the column names of the data
 ```
 
 - This data set has a column named factor1 which has two levels = "a" and "b". Let's say we are only interested in the entries that have an "a" for factor1. We can subset the data by using the subset() function.
 
 ```{r, comment=NA}
-QG16.lab.1.only.a <- subset(QG16.lab.1, factor1 == "a")
-QG16.lab.1.only.a
+lab.1.only.a <- subset(lab.1, factor1 == "a")
+lab.1.only.a
 ```
 
 - Let's save the subset into a csv file by using the function write.table().
 
 ```{r, comment=NA}
-write.table(QG16.lab.1.only.a, file = "./QG16_subset_only_a.csv", sep = ",", quote= FALSE, row.names=FALSE)
+write.table(lab.1.only.a, file = "./subset_only_a.csv", sep = ",", quote= FALSE, row.names=FALSE)
 # the quote options remove the "" of the entries. try it with quote = TRUE and see how it is different.
 # row.names = FALSE eliminates the numbers in front of each row
 ```
