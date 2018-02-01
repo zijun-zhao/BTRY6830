@@ -118,8 +118,6 @@ Key features:
 
 - Typos are your worst enemy and you will see many in the lecture notes as well...
 
-- Computers are super fast stubborn idiots.
-
 - Your program or script will almost certainly never work on the first run. If it does work, it is probably not doing the right thing.
 
 
