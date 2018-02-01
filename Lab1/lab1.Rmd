@@ -7,9 +7,6 @@ Quantitative Genomics and Genetics, Spring 2018
 
 Computer Lab 1
 ------
--- 1 February 2018
--- Author: Zijun Zhao (ziz2003@med.cornell.edu)
-
 
 **Announcements**   
 - CMS has not been set up yet for students at the NYC campus.     
