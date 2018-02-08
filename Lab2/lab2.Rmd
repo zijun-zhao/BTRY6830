@@ -329,7 +329,29 @@ value == 1
 value == "A"
 ```
 
+- Example output
 
+```{r, comment = NA, echo = FALSE}
+lab2_challenge <- function(input_scores, conversion_table){
+  
+  cat("Total number of students = ", length(input_scores), "\n")
+  
+  student_letter_grade <- unname(conversion_table[input_scores])
+  names(student_letter_grade) <- names(input_scores)
+  
+  output_list <- list()
+  output_list[["Overview"]] <- table(student_letter_grade)
+  output_list[["LetterGrade"]] <- student_letter_grade
+  for(grade in unique(conversion_table)){
+    output_list[[grade]] <- names(student_letter_grade[student_letter_grade == grade]  )
+    cat(length(output_list[[grade]]), "students received ", grade, "\n")
+  }
+  return(output_list)
+}
+
+lab2_challenge(scores, standard_letter_grades)
+
+```
 
 
 
