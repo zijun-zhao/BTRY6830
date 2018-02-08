@@ -6,7 +6,12 @@ Quantitative Genomics and Genetics, Spring 2018
 
 ---
 
-### Lab 2
+### Lab 2 - [Notes](Lab2/lab2.Rmd)
+* R Markdown   
+* Functions   
+* For loops   
+* If/else statements   
+* Vector and Matrix calculation   
 
 ---
 
