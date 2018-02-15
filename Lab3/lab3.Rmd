@@ -312,3 +312,23 @@ y_cord <- c(0,4,0)
 polygon(x_cord, y_cord, col = 'skyblue')
 ```
 
+- Example output
+```{r , echo = FALSE}
+pnorm_viz <- function(input_value){
+    x_range <- seq(-5,5, by = 0.1)
+    plot(x_range, dnorm(x_range, mean = 0,sd = 1), 
+       ylab = "density", 
+       main = "Normal distribution from -5 to 5",
+       type = 'l')
+    
+    poly_sequence <- seq(-5,input_value, by = 0.1)
+    x_cord <- c(-5,poly_sequence,input_value)
+    y_cord <- c(0,dnorm(poly_sequence),0)
+    polygon(x_cord, y_cord, col = 'skyblue')
+    cat("Area Under the Curve = ", pnorm(input_value), "\n")
+}
+```
+
+```{r ,fig.width = 4,fig.height = 4,fig.align='center'}
+pnorm_viz(-1.5)
+```
