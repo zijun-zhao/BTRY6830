@@ -13,7 +13,7 @@ Submitting R code:
 
 - Use Rmarkdown and all working directories should be set to "./" if there are input datasets
 
-- Submit your .Rmd script (HTML optional). There will be penalties for scripts that fail to compile. (except errors related to missing dependencies - e.g. packages not installed on my computer, just make sure to mention which packages have been called).
+- Submit your .Rmd script and compiled pdf. There will be penalties for scripts that fail to compile. (except errors related to missing dependencies - e.g. packages not installed on my computer, just make sure to mention which packages have been called).
 
 --------------------------------------------------------------------------------------
 
