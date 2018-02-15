@@ -15,8 +15,9 @@ Quantitative Genomics and Genetics, Spring 2018
 
 ---
 
-### Lab 3
-
+### Lab 3 - [Notes](Lab3/lab3.Rmd)
+* Plotting
+* Functions related to the normal distribution
 ---
 
 ### Lab 4
