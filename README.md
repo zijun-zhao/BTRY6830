@@ -20,7 +20,10 @@ Quantitative Genomics and Genetics, Spring 2018
 * Functions related to the normal distribution
 ---
 
-### Lab 4
+### Lab 4 - [Notes](Lab4/lab4.Rmd)
+* Boolean data type
+* More on vector elements
+* Graphing using ggplot2
 
 ---
 
