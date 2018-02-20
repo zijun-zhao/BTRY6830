@@ -1,0 +1,251 @@
+---
+title: "Quantitative Genomics and Genetics 2018"
+subtitle: "Computer Lab 4"
+author: "Zijun Zhao"
+date: "2/22/2018"
+output: html_document
+---
+
+--------------------------------------------------------------------------------------
+
+### 1. Boolean Data Type
+
+- Boolean data type is a data type with only two possible values, TRUE and FALSE.
+
+- Its main usage is for testing conditions. 
+
+- In R and many other languages, the actual values for TRUE and FALSE are 1 and 0.
+
+- This can be illustrated as follows
+
+```{r, comment = NA}
+sum(TRUE + TRUE)
+sum(FALSE)
+```
+
+- Booleans are useful in testing conditions. 
+
+- For example, if you are interested in finding out if certain elements of a vector are greater than or smaller than a certain value, you can use >, <, >=, <=
+
+```{r, comment = NA}
+example.vector <- seq(1,25,by= 2)
+example.vector
+example.vector > 10
+example.vector >= 15
+example.vector <= 5
+```
+
+- Each position where the value meets the condition will be marked with TRUE, and with FALSE otherwise.
+
+- Since TRUE and FALSE are essentially 1 and 0, you can easily find out how many elements satisfy the condition by simply taking the sum of the result. 
+
+```{r, comment = NA}
+sum(example.vector >10)
+```
+
+- The same applies to matrices
+
+```{r, comment = NA}
+example.mx <- matrix(c(2,5,7,-2,-5,-10), ncol = 3, byrow=T)
+example.mx < 1
+```
+
+- You can also check if an element is equal to a specific value 
+
+```{r, comment = NA}
+dim(example.mx)[1] == 2
+```
+
+```{r, comment = NA}
+example.vector == 3
+```
+
+### 2. Boolean Algebra
+
+- Boolean algebra allows you to combine multiple conditions.
+
+- There are three basic operations AND (&), OR (|) and NOT (!).
+
+- The AND (&) operator returns TRUE **only if all conditions are TRUE**
+
+```{r, comment = NA}
+FALSE & FALSE
+TRUE & FALSE
+TRUE & TRUE
+
+# Example of an AND operator
+example.vector > 5 & example.vector < 10
+
+# if you want to see the actual elements 
+example.vector[example.vector >10 & example.vector < 20]
+
+```
+
+- The OR (|) operator returns TRUE **when at least one condition is TRUE**
+
+```{r, comment= NA}
+
+FALSE | FALSE
+TRUE | FALSE
+TRUE | TRUE
+
+# Example of an OR operator
+example.vector > 10 | example.vector < 20
+
+example.vector < 10 | example.vector > 20
+
+```
+
+- NOT (!) returns the opposite result
+
+```{r, comment = NA}
+!(TRUE)
+
+example.vector != 3
+```
+
+### 3. More on Vector Elements
+
+- If you want to check whether a certain element is present or absent in a vector use the %in% operator
+
+```{r, comment = NA}
+
+fruits <- c("banana","apple","strawberry","peach","mango")
+
+"mango" %in% fruits
+
+"durian" %in% fruits
+```
+
+- We can see what the ! operator is doing by wrapping the previous expression with !() 
+
+```{r, comment = NA}
+!("durian" %in% fruits)
+
+```
+
+- You can find out the index of a certain entry in a vector by using the which() function 
+
+```{r, comment = NA}
+which(fruits == "apple")
+```
+
+- If you want to compare two vectors,
+
+```{r, comment = NA}
+fruits2 <- c("orange","banana","durian","cherry","mango","apple")
+
+fruits2 %in% fruits
+# show me the position
+which(fruits2 %in% fruits)
+
+#show me the elements
+fruits2[fruits2 %in% fruits]
+
+# There is also a function for this
+intersect(fruits2, fruits)
+
+```
+
+### 4. Review of If / else statements
+
+- By using if and else statements you can insert condition specific executions in your script
+
+- The code inside an if statement will only be executed when the condition is TRUE
+
+- The structure looks like this
+
+```{r, comment = NA, eval = FALSE}
+if (condition) {
+  do stuff
+} else {
+  do stuff
+}
+
+# OR you can add more levels by using else if
+
+if(condition){
+  do stuff
+} else if (condition 2){
+  do stuf
+} else {
+  do stuff
+}
+```
+
+
+- Here is a simple example
+
+```{r, comment = NA}
+
+# Loop over individual elements in example.vector
+for( i in example.vector){
+  
+    if( i < 10 ){
+        cat(i, "is smaller than 10 \n") 
+    } else if ( 10 <= i & i < 20){
+        cat(i, "is in the interval [10,20) \n")
+    } else {
+        cat(i, "is larger than 20 \n")
+    }
+
+}
+
+
+```
+
+
+### 5. Plotting using ggplot2
+- Library ggplot2 allows you to plot figures using dataframes. You can create the same plots using functions: plot and other functions. However, ggplot allows more intuitive control and has aesthetically pleasing defaults.
+
+- To install the package, use install.packages(‘ggplot2’, dependencies=T)
+
+- Inputs are dataframes.
+
+Scatter Plot
+```{r}
+library(ggplot2)
+x=rnorm(1000,0,100)
+y=rnorm(1000,5,20)
+
+df1 = data.frame(x=x,y=y)
+
+ggplot(data=df1)+geom_point(aes(x=x,y=y))+labs(x='xlabel',y='ylabel', title='Scatter plot')
+```
+
+Line Plot
+```{r}
+ggplot(data=df1)+geom_line(aes(x=x,y=y))+labs(x='xlabel',y='ylabel', title='Line plot')
+```
+
+Histogram
+```{r}
+ggplot(data=df1)+geom_histogram(aes(x=x))+labs(x='xlabel',y='ylabel', title='Histogram')
+```
+
+Graphical Options
+```{r}
+ggplot(data=df1)+geom_point(aes(x=x,y=y, size=x, color=x))+labs(x='xlabel',y='ylabel', title='Scatter plot')
+```
+
+Plotting multiple graphs
+```{r}
+library(gridExtra)
+g4<-ggplot(data=df1)+geom_point(aes(x=x,y=y, size=x, color=x))+labs(x='xlabel',y='ylabel', title='Scatter plot')
+g3<-ggplot(data=df1)+geom_histogram(aes(x=x))+labs(x='xlabel',y='ylabel', title='Histogram')
+g2<-ggplot(data=df1)+geom_line(aes(x=x,y=y))+labs(x='xlabel',y='ylabel', title='Line plot')
+g1<-ggplot(data=df1)+geom_point(aes(x=x,y=y))+labs(x='xlabel',y='ylabel', title='Scatter plot')
+
+grid.arrange(g1,g2,g3,g4, nrow=2)
+
+```
+
+- For more information on ggplot2, refer to the documentation (http://docs.ggplot2.org/current)
+
+
+
+### Exercise
+
+- Using if/else statements and plotting functions create a function that can generate a histogram, a scatter plot, or a density plot depending on the input. 
+
+
