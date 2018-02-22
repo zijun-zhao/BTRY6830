@@ -248,4 +248,30 @@ grid.arrange(g1,g2,g3,g4, nrow=2)
 
 - Using if/else statements and plotting functions create a function that can generate a histogram, a scatter plot, or a density plot depending on the input. 
 
+```{r, include= FALSE,comment = NA}
 
+data_plotter <- function(input_data, plot_type = "histogram"){
+  
+    if(plot_type == "histogram"){
+        hist(input_data, main = "Histogram of input data")  
+    } else if (plot_type == "scatter"){
+        plot(input_data, type = 'p', main = "scatter plot of input data")
+    } else if (plot_type == "density"){
+        plot(density(input_data), main = "Density plot of input data", 
+             type = 'l', 
+             xlim = c(min(input_data), 
+                      max(input_data)))
+    }
+}
+
+```
+
+```{r, fig.align='center', fig.height = 4, fig.width = 4}
+
+sample_data <- runif(1000)
+
+data_plotter(sample_data, plot_type = "histogram")
+data_plotter(sample_data, plot_type = "scatter")
+data_plotter(sample_data, plot_type = "density")
+
+```
