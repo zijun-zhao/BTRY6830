@@ -136,3 +136,49 @@ sampling_function(sample_size = 100,
                   population_sd = 1)
 ```
 
+
+```{r last, comment = NA, echo = FALSE}
+
+sampling_function<- function(sample_size,
+                             number_of_samples,
+                             population_mean,
+                             population_sd){
+    sample_means <- c()
+    
+    for ( i in 1:number_of_samples ){
+          sample_means[i] <- mean(rnorm(sample_size,
+                                        mean = population_mean, 
+                                        sd = population_sd))
+      
+    }
+    
+    sample_dist_mean <- mean(sample_means)
+    sample_dist_sd <- sd(sample_means)
+    
+    pvals <- pnorm(abs(sample_means), 
+                   mean = population_mean, 
+                   sd = population_sd / sqrt(sample_size), 
+                   lower.tail = FALSE)
+    
+    n0_reject <- sum(pvals < 0.025)
+    
+    cat("Null Hypothesis is rejected in ", 
+        n0_reject," out of ",number_of_samples," cases",
+        "(",100 * n0_reject/number_of_samples ,"%)", "\n")
+    
+    par(mfrow = c(1,2))
+    plot(density(sample_means), main = "Distribution of the Sample Mean",
+         xlab = sprintf("mean = %.3f / sd = %.3f", sample_dist_mean,sample_dist_sd))
+    hist(pvals, main = "Histogram of P-values")
+    
+  
+}
+```
+
+```{r, fig.height = 4, fig.width=9}
+set.seed(777)
+sampling_function(sample_size = 100, 
+                  number_of_samples = 1000, 
+                  population_mean = 0,
+                  population_sd = 1)
+```
