@@ -27,7 +27,8 @@ Quantitative Genomics and Genetics, Spring 2018
 
 ---
 
-### Lab 5
+### Lab 5 - [Notes](Lab5/lab5.Rmd)
+* Random numbers
 
 ---
 
