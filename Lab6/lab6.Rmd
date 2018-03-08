@@ -1,0 +1,143 @@
+---
+title: "Quantitative Genomics and Genetics 2018"
+subtitle: "Computer Lab 6"
+author: "Zijun Zhao"
+date: "3/8/2018"
+output: html_document
+---
+
+--------------------------------------------------------------------------
+
+### 1. Handling Genotype Data 
+
+- We began to cover genome wide association analyses (GWAS) in class and this lab will cover the basic data handling practices in GWAS.
+
+- The two major types of data you are going to be dealing with in GWAS are genotypes (sequence variants) and phenotypes (qualitative or quantitative).
+
+- Let's begin with some genotype data. 
+
+
+**Exercise 1**
+
+- Read in the data saved in the genotype data file.
+
+```{r, comment = NA, eval = FALSE}
+geno_import <- read.csv("./genotype_data.csv", 
+                      header = TRUE, 
+                      stringsAsFactors = FALSE,
+                      row.names = 1)
+```
+
+- This file contains SNP information for N individuals and G positions. Each pair of columns will have SNPs for a given position (one for each chromosome). For example, if the first row has "A" in column 1 and "T" in column 2 this individual has a genotype of "AT" for the first position.
+
+- Can you tell me how many samples and how many genotype positions there are?
+
+- Can you identify a problem with the data, and guess why this happens?
+
+```{r, comment = NA, echo = FALSE, eval = TRUE}
+
+# We can specify the column classes to character
+geno_import <- read.csv("./genotype_data.csv", 
+                      header = TRUE, 
+                      stringsAsFactors = FALSE,
+                      row.names = 1, colClasses = "character")
+
+# to avoid T being interpreted as TRUE, we can project the characters to lower case
+geno_import <- apply(geno_import, 2, tolower)
+
+```
+
+
+**Exercise 2**
+
+- Now that we have loaded the data into R, we would like to prepare it for analysis. 
+
+- Since we cannot really use the genotypes as they are at the moment, we would first want to convert them into numbers. 
+
+- In class we learned two methods for creating genotype dummy variables, the additive version (Xa) and the dominance version (Xd).
+
+$$X_a(A_1 A_1)=-1, X_a(A_1 A_2)=0, X_a(A_2 A_2)=1$$
+
+$$X_d(A_1 A_1)=-1, X_d(A_1 A_2)=1, X_d(A_2 A_2)=-1$$
+
+- How would you convert the character matrix of individual SNPs into dummy variables?
+
+- Calculate the Xa values for the genotypes.
+
+
+**Exercise 3**
+
+- Calculate the Xd values for the genotypes.
+
+- If we need both Xa and Xd everytime, how would you generate the Xd values?
+
+
+**Exercise 4**
+
+- Now that we have Xa and Xd codings for genotypes we can test their association with phenotypes.
+
+- In this example we are going to use two continuous phenotypes. 
+
+```{r, comment = NA, echo = TRUE}
+
+sim_pheno_mx <- read.csv("./phenotype_data.csv", 
+                     header = TRUE, row.names = 1)
+
+```
+
+- Before we jump into the analysis a good idea might be filtering genotypes with a very low minor allele frequency. Filter out any genotypes with MAF lower than 0.1 (this will include genotypes with a single value).
+
+```{r, comment = NA, echo = FALSE}
+
+xa_maf_calc <- xa_matrix + 1
+
+MAF <- apply(xa_maf_calc, 2, function(x) sum(x) / (length(x) * 2))
+
+xa_filter <- xa_matrix[,which(MAF > 0.1 & MAF < 0.5)]
+xd_filter <- xd_matrix[,which(MAF > 0.1 & MAF < 0.5)]
+
+```
+
+- Using the pseudo code below generate a function that will return a p-value for the case where the null hypothesis is betas for Xa and Xd are 0, and the alternative hypothesis is that one or both of the betas are not zero. 
+
+- You may only use lm() to test if the results you get are correct not for the actual calculations. 
+
+- Use the function ginv() from the "MASS" package instead of solve() to calculate the invese of a matrix.
+
+
+```{r, eval = FALSE}
+
+# The pseudo code for this task
+
+MLE.beta <- calculate MLE.beta 
+y.hat <- calculate the estimated values of y given the MLE>beta values
+
+SSM <- calculate SSM
+SSE <- calculate SSE
+ 
+df.M <- ?
+df.E <- ?
+
+MSM <- calculate MSM
+MSE <- calculate MSE
+
+Fstatistic <- MSM / MSE
+
+pf(Fstatistic, df.M,df.E,lower.tail =FALSE)
+
+```
+
+
+
+- If everything works, you should get something like this...
+
+```{r, comment = NA, echo = FALSE}
+
+cat("Range of pvalues for first phenotype \n")
+range(pval_mx[,1])
+
+cat("Range of pvalues for second phenotype \n")
+range(pval_mx[,2])
+```
+
+
