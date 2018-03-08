@@ -34,6 +34,16 @@ geno_import <- read.csv("./genotype_data.csv",
 
 - Can you identify a problem with the data, and guess why this happens?
 
+
+```{r, echo = FALSE, eval = FALSE}
+# There should be 100 samples and 400 genotype columns (meaning 200 genotype positions)
+
+# If you read the data in with the following function call 
+# column 253 and 254 and 395 will have TRUE instead of T saved
+head(geno_import[,253:254])
+```
+
+
 ```{r, comment = NA, echo = FALSE, eval = TRUE}
 
 # We can specify the column classes to character
@@ -65,11 +75,38 @@ $$X_d(A_1 A_1)=-1, X_d(A_1 A_2)=1, X_d(A_2 A_2)=-1$$
 - Calculate the Xa values for the genotypes.
 
 
+```{r, comment = NA, eval = TRUE, echo = FALSE}
+
+xa_converter <- function(geno_in){
+    geno_count <- table(geno_in)
+    minor_allele <- names(geno_count[geno_count == min(geno_count)])
+    xa_code <- ifelse(geno_in == minor_allele, 1,0)
+    xa_result <- rowSums(xa_code) - 1
+    return(xa_result)
+}
+
+xa_matrix <- matrix(NA, 
+                    nrow = nrow(geno_import), 
+                    ncol = ncol(geno_import)/2)
+
+for (i in 1:(ncol(geno_import)/2)){
+    xa_matrix[,i] <- xa_converter(geno_import[,c(2*i -1, 2*i)])  
+}
+
+```
+
+
 **Exercise 3**
 
 - Calculate the Xd values for the genotypes.
 
 - If we need both Xa and Xd everytime, how would you generate the Xd values?
+
+```{r, comment = NA, echo = FALSE}
+
+xd_matrix <-  1 - 2*abs(xa_matrix)
+
+```
 
 
 **Exercise 4**
@@ -124,6 +161,53 @@ MSE <- calculate MSE
 Fstatistic <- MSM / MSE
 
 pf(Fstatistic, df.M,df.E,lower.tail =FALSE)
+
+```
+
+
+
+```{r, comment = NA, echo = FALSE, results='hide'}
+library(MASS)
+
+pval_calculator <- function(pheno_input, xa_input, xd_input){
+    n_samples <- length(xa_input)
+
+    X_mx <- cbind(1,xa_input,xd_input)
+    
+    MLE_beta <- ginv(t(X_mx) %*% X_mx) %*% t(X_mx) %*% pheno_input
+    y_hat <- X_mx %*% MLE_beta
+  
+    SSM <- sum((y_hat - mean(pheno_input))^2)
+    SSE <- sum((pheno_input - y_hat)^2)
+  
+    df_M <- 2
+    df_E <- n_samples - 3 
+  
+    MSM <- SSM / df_M
+    MSE <- SSE / df_E
+  
+    Fstatistic <- MSM / MSE
+  
+    # to check if it is correct 
+    pval <- pf(Fstatistic, df_M, df_E,lower.tail = FALSE)
+
+    return(pval)
+}
+
+n_geno <- ncol(xa_filter)
+pval_mx <- matrix(NA, nrow = n_geno, ncol = 2)
+
+for (j in 1 : 2) {
+  
+    for (i in 1 : n_geno){
+
+        pval_mx[i,j] <- pval_calculator(sim_pheno_mx[,j], xa_input = xa_filter[,i], xd_input = xd_filter[,i])
+
+    }
+  
+  
+}
+
 
 ```
 
