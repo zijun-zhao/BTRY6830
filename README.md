@@ -32,7 +32,7 @@ Quantitative Genomics and Genetics, Spring 2018
 
 ---
 
-### Lab 6 - [Notes](Lab6/lab6.Rmd), [Genotype](Lab6/genotype_data.csv), [Phenotype](Lab6/phenotype_data.csv)
+### Lab 6 - [Notes](Lab6/lab6.Rmd) , [Genotype](Lab6/genotype_data.csv) , [Phenotype](Lab6/phenotype_data.csv)
 * Handling genotype data
 
 ---
