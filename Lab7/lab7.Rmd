@@ -1,0 +1,125 @@
+---
+title: "Quantitative Genomics and Genetics 2018"
+subtitle: "Computer Lab 7"
+author: "Zijun Zhao"
+date: "3/15/2018"
+output: html_document
+---
+
+--------------------------------------------------------------------------
+
+### Manhattan Plot
+
+Recall from Lab 6
+```{r}
+# Importing genotype and phenotype files
+geno_import <- read.csv("./genotype_data.csv", 
+                      header = TRUE, 
+                      stringsAsFactors = FALSE,
+                      row.names = 1, colClasses = "character")
+geno_import <- apply(geno_import, 2, tolower)
+sim_pheno_mx <- read.csv("./phenotype_data.csv", 
+                     header = TRUE, row.names = 1)
+
+# Convert genotype to Xa, Xd codings
+xa_converter <- function(geno_in){
+    geno_count <- table(geno_in)
+    minor_allele <- names(geno_count[geno_count == min(geno_count)])
+    xa_code <- ifelse(geno_in == minor_allele, 1,0)
+    xa_result <- rowSums(xa_code) - 1
+    return(xa_result)
+}
+
+xa_matrix <- matrix(NA, 
+                    nrow = nrow(geno_import), 
+                    ncol = ncol(geno_import)/2)
+
+for (i in 1:(ncol(geno_import)/2)){
+    xa_matrix[,i] <- xa_converter(geno_import[,c(2*i -1, 2*i)])  
+}
+
+xd_matrix <-  1 - 2*abs(xa_matrix)
+
+# Filtering for MAF
+xa_maf_calc <- xa_matrix + 1
+
+MAF <- apply(xa_maf_calc, 2, function(x) sum(x) / (length(x) * 2))
+
+xa_filter <- xa_matrix[,which(MAF > 0.1 & MAF < 0.5)]
+xd_filter <- xd_matrix[,which(MAF > 0.1 & MAF < 0.5)]
+
+# Computing p-values
+library(MASS)
+
+pval_calculator <- function(pheno_input, xa_input, xd_input){
+    n_samples <- length(xa_input)
+
+    X_mx <- cbind(1,xa_input,xd_input)
+    
+    MLE_beta <- ginv(t(X_mx) %*% X_mx) %*% t(X_mx) %*% pheno_input
+    y_hat <- X_mx %*% MLE_beta
+  
+    SSM <- sum((y_hat - mean(pheno_input))^2)
+    SSE <- sum((pheno_input - y_hat)^2)
+  
+    df_M <- 2
+    df_E <- n_samples - 3 
+  
+    MSM <- SSM / df_M
+    MSE <- SSE / df_E
+  
+    Fstatistic <- MSM / MSE
+  
+    # to check if it is correct 
+    pval <- pf(Fstatistic, df_M, df_E,lower.tail = FALSE)
+
+    return(pval)
+}
+
+n_geno <- ncol(xa_filter)
+pval_mx <- matrix(NA, nrow = n_geno, ncol = 2)
+
+for (j in 1 : 2) {
+    for (i in 1 : n_geno){
+        pval_mx[i,j] <- pval_calculator(sim_pheno_mx[,j], xa_input = xa_filter[,i], xd_input = xd_filter[,i])
+    }
+}
+```
+
+
+Manhattan plots graphs the genotypes on the x-axis and the negative log of p-values on the y-axis. 
+
+```{r}
+library(ggplot2)
+qplot(c(1:n_geno), -log10(pval_mx[,2]), main="Manhattan Plot", xlab="Genotype", ylab="-log10(pValues)")
+```
+
+
+--------------------------------------------------------------------------
+
+### Mini expression Quantitative Trait Loci (eQTL) Analysis with Real Data
+
+For the reminder of today's session, we are going to run a mini-eQTL analysis with some real data downloaded from the HapMap Project. Since we would probably need something more powerful than a standard laptop to analyze the complete dataset, I have downloaded the genotype and phenotype data for a single population (YRI) and scaled down the data to 400 genotypes and 10 phenotypes for 107 individuals.
+
+You will find 4 files posted with this lab note:
+
+HapMap_phenotypes.tsv = 10 phenotypes (gene expression levels) for 107 individuals 
+HapMap_genoytpes.tsv = 400 genotypes (coded as -1,0,1) for 107 individuals 
+HapMap_gene_info.tsv = Partial gene information (entrez gene id, gene symbol, position) 
+HapMap_snp_info.tsv = Partial SNP information (chromosome, position)
+
+All the information in the files are tab separated (as you can guess from the extension .tsv).
+
+**Exercise**
+
+1. Read in the data from the files. Check the dimensions and look at the first few lines to make sure the data is in the format that you desire.
+
+2. Use the function that you have created from last weeks lab to calculate the p-values for $\beta_{\alpha}$ (the additive effect) for every phenotype and every genotype. So the total number of p-values that you get is going to be 10 * 400 = 4000.
+
+3. Find the minimum p-value and identify the phenotype and genotype pair that resulted in the minimum p- value
+
+4. Plot a manhattan plot for the phenotype that you identified in step 3 (p-values for every genotype). You will see that the plot looks more like the ones we have seen in the lecture compared to the plots that you generated from a simulation.
+        
+5. From the information files (SNP and gene info), find the positions of the most significant pair and print out the position of the gene and SNP. Are the gene and the genotype positioned close to each other?
+
+
