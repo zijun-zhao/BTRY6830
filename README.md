@@ -37,7 +37,9 @@ Quantitative Genomics and Genetics, Spring 2018
 
 ---
 
-### Lab 7
+### Lab 7 - [Notes](Lab7/lab7.Rmd), [Data Files](Lab7)
+* Manhattan plot
+* Mini eQTL analysis with real data
 
 ---
 
