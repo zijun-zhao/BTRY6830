@@ -123,3 +123,47 @@ All the information in the files are tab separated (as you can guess from the ex
 5. From the information files (SNP and gene info), find the positions of the most significant pair and print out the position of the gene and SNP. Are the gene and the genotype positioned close to each other?
 
 
+```{r}
+hapmap.pheno.mx <- read.table("./HapMap_phenotypes.tsv", sep = "\t")
+hapmap.geno.mx <- read.table("./HapMap_genotypes.tsv", sep = "\t")
+hapmap.gene.info.df <- read.table("./HapMap_gene_info.tsv", sep = "\t")
+hapmap.snp.info.df <- read.table("./HapMap_snp_info.tsv", sep = "\t")
+
+pval.mx <- matrix(NA, nrow = dim(hapmap.pheno.mx)[2], ncol = dim(hapmap.geno.mx)[2])
+
+for (p in 1:dim(hapmap.pheno.mx)[2]){
+  phenotypes <- hapmap.pheno.mx[,p]
+  N.samples <- dim(hapmap.pheno.mx)[1]
+  for (i in 1:dim(hapmap.geno.mx)[2]){
+    X.mx <- cbind(1,hapmap.geno.mx[,i])
+    MLE.beta <- solve(t(X.mx) %*% X.mx) %*% t(X.mx) %*% phenotypes
+    y.hat <- X.mx %*% MLE.beta
+    SSM <- sum((y.hat - mean(phenotypes))^2)
+    SSE <- sum((phenotypes - y.hat)^2)
+    df.M <- 1
+    df.E <- N.samples - 2
+    MSM <- SSM / df.M
+    MSE <- SSE / df.E
+    Fstatistic <- MSM / MSE
+    pval.mx[p,i] <- pf(Fstatistic, df.M, df.E,lower.tail = FALSE)
+  } 
+}
+
+# check which one is the most significant one
+minpval.ind <- which(pval.mx == sort(pval.mx[5,])[2], arr.ind = TRUE)
+# significant phenotype idx = 5 / genotype idx = 135
+
+# create manhattan plot
+library(ggplot2)
+qplot(c(1:length(pval.mx[minpval.ind[1],])), -log10(pval.mx[minpval.ind[1],]), main="Manhattan Plot", xlab="Genotype", ylab="-log10(pval)")
+
+gene.info.vec <- hapmap.gene.info.df[which(hapmap.gene.info.df$probe ==
+colnames(hapmap.pheno.mx)[minpval.ind[1]]),]
+
+genotype.info.vec <- hapmap.snp.info.df[which(hapmap.snp.info.df$id ==
+colnames(hapmap.geno.mx)[minpval.ind[2]] ),]
+
+cat( "Gene = ", colnames(hapmap.pheno.mx)[minpval.ind[1]] ,"| ", paste0("chr", gene.info.vec$chromosome) ,"Start =", gene.info.vec$start,"End =", gene.info.vec$end,"\n" )
+
+cat( "SNP = ", colnames(hapmap.geno.mx)[minpval.ind[2]] ,"| ", toString(genotype.info.vec$chrom) ,"Position =", genotype.info.vec$position,"\n" )
+```
