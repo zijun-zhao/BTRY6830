@@ -1,0 +1,179 @@
+---
+title: "Quantitative Genomics and Genetics 2018"
+subtitle: "Computer Lab 8"
+author: "Zijun Zhao"
+date: "3/22/2018"
+output: html_document
+---
+
+--------------------------------------------------------------------------
+### 1. QQ plot
+
+#### Linear regression using lm()
+Now that we have coded up linear regressions from scratch multiple times, we can move on to simpler ways. The most common way to do linear regressions in R is through the function lm(), which stands for linear model. Let’s use the mini Hapmap dataset that we used in lab 7.
+
+```{r}
+phenotypes <- read.table("./HapMap_phenotypes.tsv", header = T)
+genotypes <- read.table("./HapMap_genotypes.tsv", header = T)
+Xa.all <- as.matrix(genotypes)
+Xd.all <- 1- 2*abs(Xa.all)
+```
+
+There are multiple ways to call lm() with a specific model and we will look at two ways of doing that. 
+
+(1) The first way is to generate a dataframe and using the structure of the dataframe to specify the model. In our case, we are interested in regressing the phenotypes against the dummy variables Xa and Xd and the expression inside lm is going to be something like this:
+
+lm(Y ~ Xa + Xd)
+
+This is saying that Y should be the dependent variable, and Xa and Xd should be the indepenedent variables. So to call this for a single genotype and single phenotype we would call lm() like this:
+
+```{r}
+regression.df <- data.frame("Y" = phenotypes[,1], "Xa" = Xa.all[,1], "Xd" = Xd.all[,1])
+lm(Y ~ Xa + Xd, data = regression.df)
+```
+
+The data = regression.df part is telling lm() to look for Y, Xa and Xd values in the specified dataframe. 
+
+(2) Another way of using lm is to use the objects in the workspace as they are (which is a less favorable way since the code gets a bit messier).
+
+```{r}
+lm(phenotypes[,1] ~ Xa.all[,1] + Xd.all[,1])
+```
+
+You can see that the outputs are cleaner in the former call, so let’s just stick with the first way of calling lm(). However, this is only showing us the estimated values for each parameter (beta_mu = intercept, beta_a = Xa, beta_d = Xd). How can we get to the p-value of the whole model? Before we get into that let us do a sanity check and see if the values are identical from those which we will get by calculating them using the equations that we leanred in class.
+
+
+```{r}
+library(MASS)
+X.mx <- cbind(1, Xa.all[,1],Xd.all[,1])
+Y <- as.matrix(phenotypes[,1])
+MLE_beta <- ginv(t(X.mx) %*% X.mx) %*% t(X.mx) %*% Y
+MLE_beta
+```
+
+It looks like they are almost identical (probably so because the lm function prints out the values rounded up to the 5th decimal point) ! Now that we have checked that it is indeed doing the same thing, let’s try to get all the other values like the f statistics and p-values as well. You could do it by saving the lm() call into a variable and use the values from that object.
+
+```{r}
+linear.fit <- lm(Y ~ Xa + Xd, data = regression.df)
+```
+
+A simple way of getting to the values that we need is to use the summary() function on the linear.fit object.
+
+```{r}
+lm.summary <- summary(linear.fit)
+print(lm.summary)
+```
+
+This is giving us way more information than the lm output. The call is showing us which model we have used, the residuals field is showing us the summary of the residuals, the coefficients field is showing us the parameter estimates and p values for each of the parameters, and at the end we can see the f-statistic degrees of freedoms and the p-value for the whole model. Let see how we can access these values. If you save the summary output to a variable you can see that it also has a lot of information stored inside. The values that we are interested can be found in the fstatistic list and coefficients list.
+
+To get the p-value for the model we can simply do this:
+
+```{r}
+fstat <- lm.summary$fstatistic
+pvalue <- pf(fstat[1],fstat[2],fstat[3], lower.tail = FALSE)
+print(pvalue)
+```
+
+
+#### Generating QQ plots
+
+Despite the not-so-intuitive name, QQ-plots are really useful in inspecting the quality of the results from a large scale study. QQ-plots are generally created for each phenotype, so in a genome-wide association study setting where you have P phenotypes and G genotypes, you would have P QQ-plots. For this dataset we will have 10 QQ plots with 400 point each. For example, with a p-value vector for phenotype 2 we can simply generate a QQ plot like this :
+
+
+```{r, fig.align='center', fig.height=5, fig.width=5}
+# you need to generate the p-value vector!
+expected.pvals <- -log10(seq(from=0,to=1, length.out = length(pval.vec)))
+observed.pvals <- -log10(pval.vec)
+expected.sorted <- sort(expected.pvals)
+observed.sorted <- sort(observed.pvals)
+plot(expected.sorted, observed.sorted, main = "QQ plot for phenotype 2")
+abline(a = 0,b = 1, col = "red", lwd = 1)
+```
+
+
+**Exercise**
+
+* Use the dataset from computer lab 7 to generate a 10 x 400 p-value matrix for each phenotype genotype pair using lm().
+
+* Plot 10 QQ-plots for each phenotype.
+
+
+--------------------------------------------------------------------------
+### 2. Principal Component Analysis
+
+One of the biggest challenges in dealing with gene expression or genotype data is the high dimensionality of the data. Transcriptome wide gene expression datasets usally have 10,000 + gene expression levels measured and commonly used genotype datasets have around 600,000 ~ 900,0000 dimensions. The high dimensionalities not only make it difficult to perform statistical analyses on the data, but also make it hard to visualize and inspect the data. Today we will learn how to use Principal component analysis (PCA) to deal with this problem. 
+
+Let's begin with a simple case where we have two measured variables x and y which are generated like this: 
+
+```{r , comment = NA, fig.align='center'}
+set.seed(2018)
+x <- 2 + rnorm(300,0,1)
+y <- 0.5 + 1*x + rnorm(300,0,1)
+
+example.data <- cbind(x,y)
+plot(example.data[,1],example.data[,2])
+
+```
+
+We can see that x and y are heavily correlated, which is not very surprising since the value of y was generated based on the value of x. In this case we don't really need to reduce the dimensions since a 2-D plot is easy to generate. However, for the sake of demonstration (and the lack of ability to plot 4 or 5 dimensional data) let us try to reduce this 2 dimensional dataset into a single dimension without losing too much information. The most valuable information in this dataset is probably the correlation between x and y (since there is not much left if you take that relationship out... just normal errors). So it seems like a good idea to keep that information in the single dimension that we have. Let's first center our data to (0,0) to make it easier to draw vectors. 
+
+
+```{r , comment = NA, fig.align='center'}
+example.data.center <- scale(example.data, center = TRUE, scale = FALSE)
+plot(example.data.center[,1], example.data.center[,2],xlim = c(-5,5), ylim = c(-5,5))
+arrows(x0=0, y0=0, x1 = 1, y1 = 0, col = "red", lwd = 3,length =0.15)
+arrows(x0=0, y0=0, x1 = 0, y1 = 1, col = "red", lwd = 3,length =0.15)
+
+```
+
+So right now the data is represented by the coordinates of x and y, and the basis vectors are (1,0) and (0,1) shown as the red arrows. In order to capture the relationship between x and y and representing the data in 1-D we would probably use a vector that goes along the diagonal of the data. The direction along the diagonal explains the the largest amount of variance in the data (has the largest spread along its direction) and if we project each data point onto this vector we wont be losing too much information about the relationship between x and y. Let's find out the exact direction of that vector by using pca in R. There are two functions in R that are commonly used to perform pca: prcomp() and princomp(). Although they are doing the same thing, they use slightly different methods to calculate the outcomes and prcomp() happens to use the method that is faster and is computationally less expensive. So let's use prcomp() to do our calculations.
+
+```{r, comment = NA}
+
+# when you use prcomp, your input data should have measrued variables in columns and individual samples/points as rows (N samples x G genes (genotypes))
+pca.result <- prcomp(example.data.center)
+str(pca.result)
+```
+
+
+```{r, comment = NA, fig.align='center'}
+#$sdev contains information about the fraction of variation explained by a certain principal component.
+pca.result$sdev
+
+(pca.result$sdev / sum(pca.result$sdev))*100
+```
+
+What is shown here is the percentage of variance explained by each principal component. This means that the first PC explains ~72% of the variation in the data, and the second component explains about 28% of the variation and so on. 
+
+
+```{r, comment = NA, fig.align='center'}
+#$rotation contains the directions of principal components in each of its columns.
+pca.result$rotation
+
+plot(example.data.center[,1], example.data.center[,2],xlim = c(-5,5), ylim = c(-5,5))
+arrows(x0=0, y0=0, x1 = pca.result$rotation[1,1], y1 = pca.result$rotation[2,1], col = "red", lwd = 2,length =0.15)
+arrows(x0=0, y0=0, x1 = pca.result$rotation[1,2], y1 = pca.result$rotation[2,2], col = "red", lwd = 2,length =0.15)
+```
+
+We can see that the first PC is the direction along the diagonal.
+
+```{r, comment = NA, fig.align='center'}
+#$center contains the mean for each data column (in our case it would be close or equal to 0 since we centered the data). 
+pca.result$center
+
+#$scale contains information about whether or not we gave the option to scale (divide it by its standard deviation) the data. 
+pca.result$scale
+
+#$x contains the coordinate values of the data projected to a principal component in each of its columns.
+plot(pca.result$x[,1],pca.result$x[,2],xlim = c(-5,5), ylim = c(-5,5))
+
+```
+
+You can see that the representation of the data looks like a rotation using the diagonal of the original data as the first axis. So if we are interested in only keeping 1-D of the data without losing too much information, our best shot would be to keep the first column of the projected data pca.result$x[,1].
+
+
+**Exercise**
+
+* Generate a PCA plot for the mini Hapmap dataset.
+
+
