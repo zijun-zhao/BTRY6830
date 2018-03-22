@@ -97,6 +97,33 @@ abline(a = 0,b = 1, col = "red", lwd = 1)
 
 * Plot 10 QQ-plots for each phenotype.
 
+```{r}
+Xa.all <- as.matrix(genotypes)
+Xd.all <- 1- 2*abs(Xa.all)
+
+get_pvals <- function(Y,Xa,Xd){
+  summary.lm <- summary(lm(Y ~ Xa + Xd))
+  fstat <- summary.lm$fstatistic
+  pval <- pf(fstat[1],fstat[2],fstat[3], lower.tail = FALSE)
+  return(pval)
+}
+
+pval.mx <- apply(phenotypes, 2, function(y) sapply(1:400, function(x) get_pvals(as.matrix(y), Xa.all[,x],Xd.all[,x])) ) 
+
+which(pval.mx == min(pval.mx), arr.ind = TRUE)
+```
+
+```{r}
+for (i in 1:10){
+  pval.vec <- pval.mx[,i]
+  expected.pvals <- -log10(seq(from=0,to=1, length.out = length(pval.vec)))
+  observed.pvals <- -log10(pval.vec)
+  expected.sorted <- sort(expected.pvals)
+  observed.sorted <- sort(observed.pvals)
+  plot(expected.sorted, observed.sorted, main = paste0("QQ plot for phenotype ",i))
+  abline(a = 0,b = 1, col = "red", lwd = 1)
+}
+```
 
 --------------------------------------------------------------------------
 ### 2. Principal Component Analysis
@@ -145,6 +172,19 @@ pca.result$sdev
 
 What is shown here is the percentage of variance explained by each principal component. This means that the first PC explains ~72% of the variation in the data, and the second component explains about 28% of the variation and so on. 
 
+Extracting eigenvalues from PCA
+
+```{r}
+library(factoextra)
+eig.val <- get_eigenvalue(pca.result)
+eig.val
+```
+
+The eigenvalues are proportional to
+```{r}
+pca.result$sdev^2
+```
+
 
 ```{r, comment = NA, fig.align='center'}
 #$rotation contains the directions of principal components in each of its columns.
@@ -176,4 +216,10 @@ You can see that the representation of the data looks like a rotation using the 
 
 * Generate a PCA plot for the mini Hapmap dataset.
 
+```{r}
+pca.result <- prcomp(genotypes, center=TRUE, scale=TRUE)
+pca.data <- data.frame("PC1"=pca.result$x[,1], "PC2"=pca.result$x[,2])
 
+library(ggplot2)
+ggplot(data = pca.data, aes(x = PC1, y = PC2)) + geom_point() +  labs(title = "PCA plot") 
+```
