@@ -43,7 +43,9 @@ Quantitative Genomics and Genetics, Spring 2018
 
 ---
 
-### Lab 8
+### Lab 8 - [Notes](Lab8/lab8.Rmd) 
+* QQ plot
+* PCA
 
 ---
 
