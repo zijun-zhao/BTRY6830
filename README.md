@@ -49,7 +49,9 @@ Quantitative Genomics and Genetics, Spring 2018
 
 ---
 
-### Lab 9
+### Lab 9 - [Notes](Lab9/lab9.Rmd) , [Data Files](Lab9)
+* Logistic regression
+* IRLS algorithm
 
 ---
 
