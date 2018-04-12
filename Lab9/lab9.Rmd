@@ -1,0 +1,190 @@
+---
+title: "Quantitative Genomics and Genetics 2018"
+subtitle: "Computer Lab 9"
+author: "Zijun Zhao"
+date: "4/12/2018"
+output: html_document
+---
+
+--------------------------------------------------------------------------
+
+### 1. Logistic Regression
+
+In logistic regression, the dependent variable y (in our case phenotype) is categorical instead of continuous. Specifically, we are going to use logistic regression to deal with binary phenotypes coded as 0 and 1. For example, in genome-wide association studies (GWAS) a healthy or normal control phenotype would be 0 and a disease phenotype (ex. diabetes, alzheimers, etc ...) would be 1, and the goal is to identify genomic variations that increase the probability of belonging to the disease category. 
+
+You might be wondering why we need this in the first place. So let's try to use linear regression for a binary phenotype and see what happens. 
+
+```{r ,echo = FALSE,fig.show='hold',  fig.width=4, fig.height=4, fig.align='center'}
+
+xa <- sample(c(-1,0,1), 100, replace = TRUE)
+y <- 1* (xa * 1.7 + rnorm(100,0,2) > 0)
+
+test_data <- data.frame("pheno" = y, "Xa" = xa)
+linear_model <- lm(pheno ~ Xa, data=test_data)
+
+plot(jitter(test_data$Xa, .3), jitter(test_data$pheno, .3), xlab = "Xa", ylab = "Y")
+curve(predict(linear_model, data.frame(Xa=x), type="response"), add=TRUE, col = "blue") 
+
+```
+
+It becomes quite clear that we need a better alternative to linear regression for binary phenotypes. Simply put, logistic regression transforms the linear model that we use to "fit" the binary phenotypes. The logistic function takes the form as follows:
+
+$$\sigma(t)=\frac{1}{1+e^{-t}}$$
+
+If we substitute t with the linear function that depends on x and beta values, the logistic function that we use becomes
+
+$$F(x)=\frac{1}{1+e^{-(\beta_0+\beta_1x)}}$$
+
+A simple visualization in R might give us a better idea of how the data is transformed. Basically, logistic regression confines the original dependent values within the range of 0 and 1. 
+
+```{r, echo = TRUE, fig.show='hold',  fig.width=8, fig.height=4, fig.align='center' }
+x <- seq(-1,1,by = 0.1)
+y_linear <- x * 4
+y_logistic <- 1 / ( 1 + exp(-y_linear))
+
+par(mfrow = c(1,2))
+plot(x, y_linear, main = "Linear function", type = "l")
+abline(h = 0, col = "red", lty = 2)
+abline(h = 1, col = "red", lty = 2) 
+plot(x,y_logistic, main = "logistic regression curve", type ="l", ylim = c(-0.5,1.5))
+abline(h = 0, col = "red", lty = 2)
+abline(h = 1, col = "red", lty = 2)
+```
+
+We have a given phenotype that takes either a value of 1 or 0, and two matrices for genotypes in the form of Xa(-1,0,1) coding and Xd(-1,1) coding. Just like in linear regression, the goal is to find the values for $\beta_{\mu}$, $\beta_a$ and $\beta_d$ for each genotype that best explain the relationship between the genotype and phenotype. 
+
+If the relationship was error free and the genotype value directly predicts the phenotype, we would not need logistic regression (For example, if A2A2 indicates phenotype = 1 with 100% certainty). However, that is more than often not the case in real world genetics/genomics so we would have to "soft" model the relationship between genotypes and phenotypes by using probabilities, (In other words, A2A2 has a higher chance of having phenotype=1 than phenotype=0) and that is what the transformation given in the above equation is doing. 
+
+
+--------------------------------------------------------------------------
+
+### 2. Iterative Re-weighted Least Squares (IRLS) Algorithm
+
+Unlike the simple matrix calculation in linear regression for the MLE(beta) values, we don't have that closed form estimate here.The solution to this problem is an "iterative" approach where the algorithm starts at a given point and keeps looking for a better solution in following steps until the better solution is almost identical to the solution from the previous step. 
+
+Algorithms similar to this have a general outline as follows.
+
+- An objective (or cost) function. This is a function which represents how well the model fits. For example, in linear regression a lower sum of squared errors (deviation of the predicted phenotypes from the actual phenotypes) represents a better model fit. So the goal of these algorithms would be to minimize (or maximize depending on the situation) the given objective function. 
+
+- Optimization function. The core of the algorithm which finds the parameter values that minimize the objective function. Most of the algorithms will use methods based on gradients (derivatives) of the objective function to find the direction to update the parameters. 
+
+
+
+--------------------------------------------------------------------------
+
+### Exercise
+
+1) Download the phenotype and genotype files from the github site and read them in.
+   You should have 292 genotypes and 1 phenotype for 107 samples.
+   
+2) Note that the genotypes are already in Xa codings, and you only have to create the Xd matrix from it.
+
+3) Use the template given below and try to fill in the code to make it a functional algorithm.
+
+4) Plot a manhattan plot for the phenotype and look for significant peaks.
+
+5) Your output should look something like this :
+
+```{r, comment = NA, echo = TRUE,eval = FALSE, fig.align='center', fig.width=7,fig.height=4}
+
+W_calc <- function(gamma_inv){
+     
+    return(W)
+}
+
+beta_update <- function(X_mx, W, Y, gamma_inv, beta){
+
+	return(beta_up)
+}
+
+gamma_inv_calc <- function(X_mx, beta_t){
+
+    return(gamma_inv)
+}
+
+dev_calc <- function(Y, gamma_inv){
+
+    return(deviance)
+}
+
+loglik_calc <- function(Y, gamma_inv){
+
+    return(loglik)
+}
+
+
+logistic.IRLS<- function(Xa,Xd,Y = Y, beta.initial.vec = c(0,0,0), d.stop.th = 1e-6, it.max = 100) {
+    
+    # Create Initial values
+    
+  
+    # Start of optimization loop
+    for(i in 1:it.max) {
+         
+        # calculate W
+      
+        # update beta
+      
+        # update gamma_inv
+      
+        # calculate deviation
+      
+        # check if deviation is smaller than threshold
+        if() {
+            cat("Convergence at iteration:", i, "at threshold:", d.stop.th, "\n")
+            logl<-# Log likelihood goes here
+            return(list(beta_t,logl)) # return a list that has beta.t and logl saved
+        }   
+    }
+  
+    # In case the algorithm did not coverge
+    cat("Convergence not reached after iteration:", i, "at threshold:", d.stop.th, "\n")
+    return(list(beta_t= c(NA,NA,NA),logl=NA)) # return NA values 
+}
+
+
+G <- dim(Xa)[2]
+logl <- vector(length = G)
+
+for(j in 1:G){
+
+  result.list <- call our function
+  logl<- # How do we extract an element from a list? might want to use [[]]
+
+}
+
+# Calculate the log likelihood for the NULL using IRLS
+logl_H0 <- logistic.IRLS(Y=Y, Xa= NULL, Xd=NULL, beta.initial.vec = c(0))[[2]]
+
+LRT<-2*logl-2*logl_H0 #likelihood ratio test statistic
+
+
+pval <- # chi squared test with the following parameters (LRT, 2, lower.tail = F)
+  
+# Plot manhattan plot with cut off line  
+plot(-log10(pval))
+abline(-log10(0.05/300),0,col="red")
+
+
+
+```
+
+
+
+6) You can also visualize the individual genotype effect by using the jitter() function with plot()
+
+```{r, comment = NA, echo = FALSE,eval = TRUE, fig.align='center', fig.width=12,fig.height=5}
+
+# Checking the effect 
+i <- 180
+
+par(mfrow = c(1,2))
+plot.df <- data.frame( "pheno" = Y, "Xa" = xa_matrix[,i], "Xd" = xd_matrix[,i])
+plot(jitter(plot.df$Xa, .4), jitter(plot.df$pheno, .4), xlab = "Xa", ylab = "Y")
+plot(jitter(plot.df$Xd, .4), jitter(plot.df$pheno, .4), xlab = "Xd", ylab = "Y")
+
+
+```
+
+
+
