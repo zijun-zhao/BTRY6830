@@ -55,9 +55,14 @@ Quantitative Genomics and Genetics, Spring 2018
 
 ---
 
-### Lab 10
+### Lab 10 - [Notes](Lab10/lab10.Rmd) , [Data Files](Lab10)
+* Mixed models
 
 ---
 
 ### Lab 11
+
+---
+
+### Lab 12
 
