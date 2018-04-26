@@ -131,6 +131,118 @@ Combine what we learned today and during the previous labs, produce a manhattan 
 
 
 
+```{r, comment = NA, echo = TRUE, eval = FALSE}
+y <- read.csv("pheno.csv", row.names=1)
+x <- read.csv("geno.csv", row.names=1)
+xa_matrix <- as.matrix(x-1)
+xd_matrix <- 1 - 2*abs(xa_matrix)
+covar.x <- prcomp(t(xa_matrix))$rotation[,1]
+covar.y <- prcomp(t(y))$rotation[,1]
+xc <- cbind(covar.x, covar.y)
+
+for(i in 1:ncol(y)){
+  beta<-NULL
+  logl<-NULL
+  for(j in 1:dim(xa_matrix)[2]){
+  	myList<-logistic.IRLS(X=cbind(xa_matrix[,j],xd_matrix[,j]), Covars=xc, Y=as.matrix(y[,i]))
+  	beta<-cbind(beta,myList[[1]])
+  	logl<-c(logl,myList[[2]])
+  }
+  
+  
+  # log likelihood for NULL hypothesis
+  logl_H0 <- logistic.IRLS(Y=as.matrix(y[,i]), X=rep(0, nrow(y)), Covars=xc)[[2]]
+  
+  LRT<-2*logl-2*logl_H0 #likelihood ratio test statistic
+  
+  #likelihood ratio test statistic for every genotype
+  pval <- pchisq(LRT, 2, lower.tail = F)
+  
+  plot(-log10(pval), main = paste("Phenotype", i))
+}
+
+
+```
+
+
+```{r, comment = NA, echo = FALSE, eval = FALSE, fig.align='center', fig.width=7,fig.height=4}
+library(MASS)
+
+W_calc <- function(gamma_inv){
+    N <- length(gamma_inv)
+		W<-diag(as.vector(gamma_inv * (1- gamma_inv)))
+      
+    return(W)
+}
+
+beta_update <- function(X_mx, W, Y, gamma_inv, beta){
+  beta_up <- beta + ginv(t(X_mx)%*%W%*%X_mx)%*%t(X_mx)%*%(Y-gamma_inv)
+	return(beta_up)
+}
+
+gamma_inv_calc <- function(X_mx, beta_t){
+    # K is the part which goes into the exponent
+    K <- X_mx %*% beta_t
+    gamma_inv <- exp(K)/(1+exp(K))
+    return(gamma_inv)
+}
+
+dev_calc <- function(Y, gamma_inv){
+    deviance <- 2*( sum(Y[Y==1]*log(Y[Y==1]/gamma_inv[Y==1])) + sum((1-Y[Y==0])*log((1-Y[Y==0])/(1-gamma_inv[Y==0]))) )  
+    return(deviance)
+}
+
+loglik_calc <- function(Y, gamma_inv){
+    loglik <- sum(Y*log(gamma_inv)+(1-Y)*log(1-gamma_inv))
+    return(loglik)
+}
+
+logistic.IRLS<- function(X = NULL, Covars = NULL,Y =Y, beta.initial.vec = NULL, d.stop.th = 1e-6, it.max = 100) {
+
+  #Create the X matrix
+
+  X_mx <- cbind(matrix(1, nrow = nrow(Y), ncol = 1),X, Covars)
+  
+  if(is.null(beta.initial.vec)){
+    beta.initial.vec <- rep(0, ncol(X_mx))  
+  }
+	#initialize the beta parameter vector at t=0
+	beta_t <- beta.initial.vec
+  
+  # initialize deviance at d[t]
+	dt <- 0
+	
+  gamma_inv <- gamma_inv_calc(X_mx, beta_t)
+	
+	for(i in 1:it.max) {
+		dpt1 <- dt #store previous deviance
+		
+    # create empty matrix W
+		W <- W_calc(gamma_inv)
+    
+		beta_t <- beta_update(X_mx, W, Y, gamma_inv, beta_t)
+		
+		#update gamma since it's a function of beta
+		
+		gamma_inv <- gamma_inv_calc(X_mx, beta_t)
+
+		#calculate new deviance
+		dt <- dev_calc(Y, gamma_inv)
+		
+		absD <- abs(dt - dpt1)
+		
+		if(absD < d.stop.th) {
+			#cat("Convergence at iteration:", i, "at threshold:", d.stop.th, "\n")
+			logl <- loglik_calc(Y, gamma_inv)
+			return(list(beta_t,logl))
+		}	
+	}
+	#cat("Convergence not reached after iteration:", i, "at threshold:", d.stop.th, "\n")
+	return(list(beta_t,logl))
+}
+
+```
+
 
 
 
