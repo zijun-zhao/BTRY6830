@@ -68,7 +68,7 @@ Now let's see what the effects are for covariate inclusion.
 First, simply testing the genotype effect with or without a covariate effect on the phenotype leads to different levels of significance. 
 
 ```{r, comment = NA, echo = TRUE}
-set.seed(1987)
+set.seed(2018)
 
 x = sample(c(-1,0,1), 100, replace = TRUE)
 
