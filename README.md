@@ -60,7 +60,8 @@ Quantitative Genomics and Genetics, Spring 2018
 
 ---
 
-### Lab 11
+### Lab 11 - [Notes](Lab11/lab11.Rmd) , [Data Files](Lab11)
+* Modeling with covariates
 
 ---
 
