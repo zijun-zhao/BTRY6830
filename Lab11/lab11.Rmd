@@ -25,7 +25,7 @@ and the alternative is :
 
 $$y = \beta_\mu + \beta_g \cdot genotypes + \beta_c \cdot covariate + error$$
 
-To test the significance of genotypes in this framework, we are going to calculate the likelihood for the null and the alternative and use a likelihood ratio test similar to what we did in the logistic regression lab. In order to do this, we first have to create a function to calculate the likelihood for the model fit. 
+To test the significance of genotypes in this framework, we are going to calculate the likelihood for the null and the alternative and use a likelihood ratio test similar to what we did in the linear regression lab. In order to do this, we first have to create a function to calculate the likelihood for the model fit. 
 
 ```{r, comment = NA, echo = FALSE}
 
