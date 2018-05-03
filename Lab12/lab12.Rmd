@@ -1,0 +1,187 @@
+---
+title: "Quantitative Genomics and Genetics 2018"
+subtitle: "Computer Lab 12"
+author: "Zijun Zhao"
+date: "5/3/2018"
+output: html_document
+---
+
+--------------------------------------------------------------------------
+### Bayesian Inference with Markov Chain Monte Carlo Methods
+So far we have been dealing with parameter estimates that gave us an answer in the form of fixed numbers. For example, with the maximum likelihood estimators for $\theta = [\beta_{\mu}, \beta_a,\beta_d]$, we got fixed values for each parameter that we were interested in. In other words, we assumed that there are fixed true values of the parameters and used the estimaters that maximized the likelihood as our best guesses.
+
+$$ L(\theta | data) \propto p(data | \theta) $$ 
+
+$$ MLE(\hat{\theta}) = argmax_{\theta}(L(\theta | data)) $$  
+
+The major difference between this and bayesian inference is that in bayesian inference we assume that there is a underlying "distribution" for our parameters not a single number. In order to estimate this distribution from a given sample, Bayes' theorem is used. 
+
+$$ p(A | B) = \frac{p(B | A ) p (A)}{p(B)} $$
+
+When we substitute A with $\theta$ and B with the data we get our bayesian formulation for the posterior distribution of the parameters given the observed data. 
+
+$$ p(\theta| data) = \frac{p(data | \theta ) p (\theta)}{p(data)} $$
+
+$p(data | \theta)$ is the likelihood and $p(data)$ is the probability of producing the data given all possible $\theta$ values , which is used as a normalizing constant and generally is difficult to calculate. $p(\theta)$ is the called the prior, and represents our belief (or initial guess) of how the parameters' distribution. The expression can be simplified by ignoring the constant part as:
+
+$$ p(\theta| data) \propto L(\theta | data ) \cdot p (\theta) $$
+
+The objective of Bayesian inference is to estimate the distribution of $\theta$ given the data. In other words, we are updating our belief about the parameters given the observed data as evidence. However, as you can see it takes a very complicated form which makes evaluating the posterior distribution a complicated problem. This is why we use methods like the Markov Chain Monte Carlo (MCMC) to generate "samples" that will represent the posterior distribution. The Metropolis-Hastings alogrithm is a widely used algorithm for this purpose. 
+
+The intuition behind this is as follows:
+
++ Although it is difficult to figure out the shape of the whole distribution, we can calculate point densities for the posterior distribution by setting a value for $\theta$.
+
++ You can generate point densities by using random $\theta$ values that "jump around", and accept the value (keep as a sample) depending on how likely the density is compared to the previous $\theta$'s density. Simply put, $\theta$ values that have a relatively hight likelihood are going to be sampled a lot, and the ones with a relatively low likelihood will be discarded most of the times.
+
++ Generate enough samples, and it will resemble the posterior distribution.
+
+### Example in Linear Regression
+
+First we are going to create a few data points with random values of Xa and using the parameters $\beta_{\mu} = 1.15, \beta_a = 3.5, \sigma = 2$. All the values are completely arbitrary so you are welcome to try it with different ones.
+
+```{r data_generation, comment=NA, fig.align='center'}
+
+set.seed(2018) #setting seed for reproducible results
+
+# Generate linear regression sample
+# creating Xa values (continuous)
+Xa <- runif(100,min=-5,max = 5)
+
+# True parameter values that we assume that we don't know before the analysis.
+beta.mu <- 1.15
+beta.a <- 3.5
+sd <- 2
+
+# Simulate Y based on the parameters
+Y <- beta.mu + Xa * beta.a + rnorm(100,0,sd)
+
+# A visual check of the data is always a good practice to inlcude
+plot(Xa,Y, main="Xa vs Y")
+
+```
+
+So far everything seems familiar to us. Now we will have to set prior distributions on the parameters that we are interested in. For the sake of simplicity I chose a standard normal prior on $\beta_{\mu},\beta_a$ and an exponential prior on $\sigma_{epsilon}$. For the algorithm we only need the point densities of the parameters, so I am using `dnorm` and `dexp`. Since we usually deal with log likelihoods I also converted the densities to log scale by giving them the option `log = TRUE`.
+
+**Question 1**
+
++ Why is a different prior more suitable for the standard deviation?
+
+Also we need to calculate the likelihood in order to get to the posterior.The reason for using log densities in this case is because if we use the densities as they are it often happens that the numbers are getting too small and thus getting subject to numerical errors. 
+
+
+```{r MCMC, comment=NA, fig.align='center'}
+
+# Prior distribution
+log.prior <- function(parameters){
+    beta.mu <- parameters[1]
+    beta.a <- parameters[2]
+    sd <- parameters[3]
+    
+    mu.prior <- dnorm(beta.mu,  log = TRUE)  # normal prior on beta.mu (mean 0, sd = 1)
+    a.prior <- dnorm(beta.a,  log = TRUE)    # normal prior on beta.a (mean 0, sd = 1)
+    sdprior <- dexp(sd, log = TRUE)          # exponentional prior on sd
+    return(mu.prior+a.prior+sdprior)
+}
+
+log.likelihood <- function(parameters,Xa,Y){
+    beta.mu <- parameters[1]
+    beta.a <- parameters[2]
+    sd <- parameters[3]
+     
+    y.hat <- beta.mu + Xa * beta.a
+    likelihood <- dnorm(Y, mean = y.hat, sd = sd, log = TRUE)
+    sum.likelihood <- sum(likelihood)
+    return(sum.likelihood)   
+}
+
+```
+
+
+Now that we have the likelihood and the prior, we can easily get the posterior through a simple function that sums up the log likelihood and the priors. 
+
+
+```{r , comment = NA}
+
+log.posterior <- function(parameters, Xa,Y){
+   posterior <- log.likelihood(parameters,Xa,Y) + log.prior(parameters)
+   return (posterior)
+}
+
+```
+
+The proposal function is takes care of the part where we "jump" around in the $\theta$ space. It is simply picking a value from a normal distribution centered around the current parameter values (although keeping the sd positive by taking the absolute value).
+
+```{r, comment = NA, fig.align='center'}
+proposal_func <- function(parameters){
+    proposal.output <- rnorm(3,mean = parameters, sd = c(0.2,0.2,0.2)) # why do we need an abs for the sd?
+    proposal.output[3] <- abs(proposal.output[3])
+    return(proposal.output) 
+}
+```
+
+We have everything we need to run the Metropolis-Hastings algorithm, so let's give it a try by running the following code section. 
+
+
+```{r, comment = NA, fig.align='center'}
+MH_MCMC <- function(startvalue, iterations,Xa,Y){
+    samples <- matrix(nrow = iterations+1, ncol = 3)
+    samples[1,] <- startvalue
+    for (i in 1:iterations){
+      
+        proposal <- proposal_func(samples[i,])
+        
+        probabilty <- exp(log.posterior(proposal,Xa,Y) - log.posterior(samples[i,],Xa,Y))
+        unif <- runif(1)
+        if (unif < probabilty){
+            samples[i+1,] <- proposal     # update with a high probability
+        }else{ 
+            samples[i+1,] <- samples[i,]  # Do not update with a low probability
+        }
+    }
+    return(samples)
+}
+ 
+
+initial.value <- c(0,0,0)   # set strarting values
+
+samples1 <- MH_MCMC(initial.value, 10000,Xa,Y) # Run the MH algorithm with 10000 iterations
+ 
+burnIn = 1000  # discard the first 1000 iterations 
+
+
+# Plot the results
+par(mfrow = c(2,3))
+hist(samples1[-(1:burnIn),1], main="Posterior of beta.mu", xlab="True value = red line" )
+abline(v = mean(samples1[-(1:burnIn),1]))
+abline(v = beta.mu, col="red" )
+hist(samples1[-(1:burnIn),2], main="Posterior of beta.a", xlab="True value = red line")
+abline(v = mean(samples1[-(1:burnIn),2]))
+abline(v = beta.a, col="red" )
+hist(samples1[-(1:burnIn),3], main="Posterior of sd", xlab="True value = red line")
+abline(v = mean(samples1[-(1:burnIn),3]) )
+abline(v = sd, col="red" )
+plot(samples1[-(1:burnIn),1], type = "l", xlab="True value = red line" , main = "samples1 values of beta.mu")
+abline(h = beta.mu, col="red" )
+plot(samples1[-(1:burnIn),2], type = "l", xlab="True value = red line" , main = "samples1 values of beta.a")
+abline(h = beta.a, col="red" )
+plot(samples1[-(1:burnIn),3], type = "l", xlab="True value = red line" , main = "samples1 values of sd")
+abline(h = sd, col="red" )
+ 
+
+```
+
+**Question2**
+
++ What do the results tell you about our model? 
+
++ Do the results differ a lot when compared to a simple linear regression done by lm()?
+
++ When you look at the samples without a "burn-in" period what do you see?
+
+
+***
+### That's it for this semester's computer lab. 
+### Good luck on the project & final exam. Cheers!
+***
+
