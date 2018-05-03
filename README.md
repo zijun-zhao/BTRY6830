@@ -65,6 +65,6 @@ Quantitative Genomics and Genetics, Spring 2018
 
 ---
 
-### Lab 12 - [Notes](Lab12/lab1.Rmd)
+### Lab 12 - [Notes](Lab12/lab12.Rmd)
 * Bayesian Inference with Markov Chain Monte Carlo Methods
 
